@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase.config'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -38,7 +39,7 @@ function CreateListing() {
                 if (user) {
                     setFormData({
                         ...formData,
-                        userRef: user,
+                        userRef: user.uid,
                     })
                 } else {
                     navigate('/sign-in')
@@ -109,19 +110,15 @@ function CreateListing() {
             //geolocation disabled
             geolocation.lat = latitude
             geolocation.lng = longitude
-            location = address
         }
 
         //store images in firebase
         const storeImage = async(image) => {
-            console.log('storeImage', image)
             return new Promise((resolve, reject) => {
                 const storage = getStorage()
                 const filename = `${auth.currentUser.uid}-${image.name}-${uuidv4()}`
 
-                console.log(storage)
                 const storageRef = ref(storage, 'images/' + filename)
-                console.log('storageRef', storageRef)
 
                 const uploadTask = uploadBytesResumable(storageRef, image)
 
@@ -154,9 +151,7 @@ function CreateListing() {
             })
         }
 
-        console.log(images)
-
-        const imageURLS = await Promise.all(
+        const imageUrls = await Promise.all(
             [...images].map((image) => storeImage(image))
         ).catch((err) => {
             console.log(err)
@@ -165,8 +160,22 @@ function CreateListing() {
             return
         })
 
-        console.log(imageURLS)
+        const formDataCopy = {
+            ...formData,
+            imageUrls,
+            geolocation,
+            timestamp: serverTimestamp(),
+        }
+
+        formDataCopy.location = address
+        delete formDataCopy.images
+        delete formDataCopy.address
+        !formDataCopy.offer && (delete formDataCopy.discountedPrice)
+
+        const docRef = await addDoc(collection(db, 'listings'), formDataCopy)
         setLoading(false)
+        toast.success('Listing saved')
+        navigate(`/category/${formDataCopy.type}/${docRef.id}`)
     }
 
     if (loading) {
@@ -380,17 +389,20 @@ function CreateListing() {
                     {/* Discounted Price */}
                     {offer && (
                         <>
-                        <label className='formLabel'>Discounted Price</label>
-                        <input
-                            className='formInputSmall'
-                            type='number'
-                            id='discountedPrice'
-                            value={discountedPrice}
-                            onChange={onMutate}
-                            min='50'
-                            max='750000000'
-                            required={offer}
-                        />
+                            <label className='formLabel'>Discounted Price</label>
+                            <div className='formPriceDiv'>
+                                <input
+                                    className='formInputSmall'
+                                    type='number'
+                                    id='discountedPrice'
+                                    value={discountedPrice}
+                                    onChange={onMutate}
+                                    min='50'
+                                    max='750000000'
+                                    required={offer}
+                                />
+                                {type === 'rent' && <p className='formPriceText'>$ / Month</p>}
+                            </div>
                         </>
                     )}
 
