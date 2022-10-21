@@ -8,6 +8,7 @@ import Category from './pages/Category';
 import Offers from './pages/Offers';
 import Profile from './pages/Profile';
 import CreateListing from './pages/CreateListing';
+import UpdateListing from './pages/UpdateListing';
 import Listing from './pages/Listing';
 import Contact from './pages/Contact';
 import SignIn from './pages/SignIn';
@@ -26,6 +27,7 @@ function App() {
             <Route path='/profile' element={<Profile />} />
           </Route>
           <Route path = '/create-listing' element={<CreateListing />} />
+          <Route path = '/update-listing/:listingId' element={<UpdateListing />} />
           <Route path = '/category/:categoryName/:listingId' element={<Listing />} />
           <Route path = '/contact/:landlordId' element={<Contact />} />
           <Route path='/sign-in' element={<SignIn />} />

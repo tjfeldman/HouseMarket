@@ -52,13 +52,17 @@ function Profile() {
         }))
     }
 
-    const onDelete = async(listingId) => {
-        const listingName = listings.find(element => element.id === listingId)?.data.name
-        window.confirm("Are you sure you want to delete " + listingName + "?")
-        await deleteDoc(doc(db, 'listings', listingId))
-        const updatedListings = listings.filter((listing) => listing.id !== listingId)
-        setListings(updatedListings)
-        toast.success("Successfully deleted listing for " + listingName)
+    const onEdit = (listingId) => {
+        navigate(`/update-listing/${listingId}`)
+    }
+
+    const onDelete = async(listingId, listingName) => {
+        if (window.confirm("Are you sure you want to delete " + listingName + "?")) {
+            await deleteDoc(doc(db, 'listings', listingId))
+            const updatedListings = listings.filter((listing) => listing.id !== listingId)
+            setListings(updatedListings)
+            toast.success("Successfully deleted listing for " + listingName)
+        }
     }
 
     const onSubmit = async (e) => {
@@ -137,9 +141,10 @@ function Profile() {
                         {listings.map((listing) => (
                             <ListingItem 
                                 key={listing.id} 
-                                listing={listing.data} 
-                                id={listing.id} 
-                                onDelete={() => onDelete(listing.id)} 
+                                listing={listing.data}
+                                id={listing.id}
+                                onEdit={(id) => onEdit(id)}
+                                onDelete={(id, name) => onDelete(id,name)} 
                             />
                         ))}
                     </ul>
