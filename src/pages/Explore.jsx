@@ -11,7 +11,6 @@ function Explore() {
             </header>
 
             <main>
-                {/*Slider */}
                 <Slider imageList={[]} />
 
                 <p className="exploreCategoryHeading">Categories</p>

@@ -44,7 +44,7 @@ function Slider({ imageList }) {
         <>
             <p className="exploreHeading">Recommended</p>
 
-            <Swiper slidesPerView={1} pagination={{clickable: true}} style={{height: '20rem'}} >
+            <Swiper slidesPerView={1} pagination={{clickable: true}} style={{height: '300px'}} >
                 {listings.map(({data, id}) => (
                     <SwiperSlide key={id} onClick={() => navigate(`/category/${data.type}/${id}`)}>
                         <div className="swiperSlideDiv" style={{
