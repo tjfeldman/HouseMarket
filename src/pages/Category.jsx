@@ -6,9 +6,12 @@ import { toast } from 'react-toastify'
 import Spinner from '../components/Spinner'
 import ListingItem from '../components/ListingItem'
 
+const FETCH_LIMIT = 10
+
 function Category() {
     const [listings, setListings] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [lastFetchedListing, setLastFetchedListing] = useState(null)
 
     const params = useParams()
 
@@ -23,11 +26,14 @@ function Category() {
                     listingsRef,
                     where('type', '==', params.categoryName),
                     orderBy('timestamp', 'desc'),
-                    limit(10)
+                    limit(FETCH_LIMIT)
                 )
 
                 //execute query
                 const querySnap = await getDocs(q)
+
+                const lastVisible = querySnap.docs.length === FETCH_LIMIT && querySnap.docs[querySnap.docs.length-1]
+                setLastFetchedListing(lastVisible)
 
                 const listings = []
                 querySnap.forEach((doc) => {
@@ -47,6 +53,41 @@ function Category() {
         fetchListings()
     }, [params.categoryName])
 
+    //Pagination 
+    const onFetchMoreListings = async() => {
+        try {
+            //get reference
+            const listingsRef = collection(db, 'listings')
+            
+            //query
+            const q = query(
+                listingsRef,
+                where('type', '==', params.categoryName),
+                orderBy('timestamp', 'desc'),
+                limit(FETCH_LIMIT),
+                startAfter(lastFetchedListing),
+            )
+
+            //execute query
+            const querySnap = await getDocs(q)
+
+            const lastVisible = querySnap.docs.length === FETCH_LIMIT && querySnap.docs[querySnap.docs.length-1]
+            setLastFetchedListing(lastVisible)
+
+            const listings = []
+            querySnap.forEach((doc) => {
+                listings.push({
+                    id: doc.id,
+                    data: doc.data(),
+                })
+            })
+
+            setListings((prevState) => [...prevState, ...listings])
+        } catch (error) {
+            toast.error("Could not fetch more listings")
+        }
+    }
+
     return (
         <div className='category'>
             <header>
@@ -64,6 +105,12 @@ function Category() {
                                 ))}
                             </ul>
                         </main>
+
+                        <br/>
+                        <br/>
+                        {lastFetchedListing && (
+                            <p className="loadMore" onClick={onFetchMoreListings}>Load More</p>
+                        )}
                     </>
                 ) : (
                     <p>No listings for {params.categoryName}</p>

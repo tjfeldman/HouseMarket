@@ -9,7 +9,7 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import 'swiper/swiper-bundle.css'
 import Spinner from '../components/Spinner'
 import shareIcon from '../assets/svg/shareIcon.svg'
-import { list } from 'firebase/storage'
+// import { list } from 'firebase/storage'
 
 SwiperCore.use([Navigation,Pagination,Scrollbar,A11y])
 
